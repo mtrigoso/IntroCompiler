@@ -1,0 +1,79 @@
+/**
+ * CUP specification of the language grammar for a simple demo language.
+ * Change this into the language grammar of MiniJava for your implementation.
+ *
+ */
+
+package Parser;
+
+import AST.*;
+import java.util.*;
+import java_cup.runtime.*;
+
+/* Terminals (lexical tokens returned by the scanner): */
+
+/* reserved words */
+terminal DISPLAY, CLASS, PUBLIC, STATIC, VOID, MAIN, RETURN, SYSOUTPRINTLN;
+terminal BOOLEAN, STRING, DOUBLE, FLOAT, CHAR, INT;
+terminal NEW, LENGTH, THIS;
+terminal IF, FOR, WHILE, ELSE;
+
+/* operators */
+terminal PLUS, MINUS, MULTIPLIES, BECOMES;
+terminal NOT, AND, OR, LESSTHAN, GREATERTHAN;
+
+/* delimiters */
+terminal SEMICOLON, COMMA, PERIOD;
+terminal LPAREN, RPAREN, LBRACKET, RBRACKET, LCURLBRACKET, RCURLBRACKET;
+
+/* literals */
+terminal TRUE, FALSE;
+
+/* identifiers */
+terminal String IDENTIFIER;
+terminal String INTEGER_LITERAL;
+
+/* Nonterminals (constructed by parser): */
+
+nonterminal List<Statement> Program;
+nonterminal Statement Statement;
+nonterminal Assign AssignStatement;
+nonterminal Display DisplayStatement;
+nonterminal Exp Expression;
+nonterminal Identifier Identifier;
+
+
+/* Precedence declarations: */
+
+precedence left PLUS;
+
+
+/* Productions: */
+
+Program ::= Statement:s
+            {: List<Statement> p = new LinkedList<Statement>();
+               p.add(s);
+               RESULT = p; :}
+        | Program:p Statement:s
+            {: p.add(s); RESULT = p; :};
+
+Statement   ::= AssignStatement:s
+                {: RESULT = s; :}
+            | DisplayStatement:s
+                {: RESULT = s; :};
+
+AssignStatement ::= Identifier:id BECOMES Expression:expr SEMICOLON
+                    {: RESULT = new Assign(id, expr, idxleft); :};
+
+Identifier  ::= IDENTIFIER:id
+                {: RESULT = new Identifier(id, idxleft); :};
+
+DisplayStatement ::= DISPLAY:d Expression:expr SEMICOLON
+                     {: RESULT = new Display(expr, dxleft); :};
+
+Expression    ::= IDENTIFIER:name
+            {: RESULT = new IdentifierExp(name, namexleft); :}
+        | Expression:arg1 PLUS Expression:arg2
+            {: RESULT = new Plus(arg1, arg2, arg1xleft); :}
+        | LPAREN Expression:expr RPAREN
+            {: RESULT = expr; :};
